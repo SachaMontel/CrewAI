@@ -1,0 +1,82 @@
+recon_task:
+  description: 
+    "Réaliser une reconnaissance passive et active sur la cible {target}.
+    Collecter toutes les informations de surface d'attaque : adresses IP, noms de domaine, ports ouverts, services en cours d’exécution et informations DNS.
+    Utiliser Nmap avec détection de version (-sV) et si possible récupérer le DNS inversé."
+  expected_output: >
+    Un rapport synthétique contenant :
+    - L’adresse IP ou nom de domaine cible
+    - Les ports ouverts (numéro/port + état)
+    - Les services associés (nom + version détectée si possible)
+    - Toute information DNS (résolution directe et inversée si applicable)
+    - Observations éventuelles sur la structure réseau
+  agent: recon_agent
+
+scan_task:
+  description: 
+    "Effectuer un scan actif approfondi sur la cible {target} pour détecter les points d'entrée exploitables.
+    Utiliser des scans de ports et services avec fingerprinting des versions.
+    Si applicable, utiliser aussi des scripts d'énumération automatique (ex: nmap NSE smb-enum-shares, rdp-enum-encryption)."
+  expected_output: >
+    Une liste détaillée comprenant :
+    - Tous les ports ouverts détectés
+    - Les services actifs détectés sur chaque port, avec leur version
+    - Protocole réseau utilisé (TCP/UDP)
+    - Observations de services suspects ou anormaux
+    - Indices d'éventuelles vulnérabilités (ex : "SMBv1 détecté")
+  agent: scanner_agent
+
+vuln_task:
+  agent: vuln_agent
+  description: "Analyser les services détectés pour associer des vulnérabilités connues.
+    Utiliser la base de données CVE et Exploit-DB pour trouver des vulnérabilités correspondantes.
+    Prioriser par sévérité (CVSS) et exploitabilité."
+  expected_output: > 
+    Liste organisée des vulnérabilités détectées :
+    - Service concerné
+    - CVE associé
+    - Description courte de la faille
+    - Niveau de sévérité (Critique / Haute / Moyenne / Basse)
+    - Exploitabilité estimée
+
+exploit_task:
+  agent: exploit_agent
+  description: "Tenter l'exploitation effective des vulnérabilités détectées à l'aide de tous les outils disponibles (Metasploit, Ncrack, CME, scripts spécifiques).
+    Prioriser les vulnérabilités critiques et facilement exploitables.
+    Démontrer l'obtention d'un accès au système cible ou l'exécution d'une commande."
+  expected_output: >
+    Rapport détaillé d'exploitation :
+    - Vulnérabilité exploitée (CVE + service)
+    - Outil utilisé
+    - Succès ou échec de l'exploitation
+    - Description précise de ce qui a été obtenu (ex: shell, compte, accès RDP...)
+    - Captures ou preuves si possibles (ex: nom d’utilisateur, screenshot Meterpreter)
+
+post_exploit_task:
+  description: "Mener des actions de post-exploitation sur le système compromis :
+    - Créer un accès persistant (tâche planifiée, backdoor, service malveillant).
+    - Nettoyer les traces dans les journaux système (Security, Application, System).
+    - Éviter toute détection de l'intrusion par les administrateurs."
+  expected_output: >
+    Rapport d'actions post-exploitation :
+    - Méthode de persistance implantée
+    - Logs effacés et techniques utilisées
+    - Confirmation de l'effacement des traces
+    - Capture d'écran ou preuve d’accès persistant actif
+  agent: post_exploitation_agent
+
+report_task:
+  description: "Compiler l'ensemble des résultats obtenus par les agents précédents dans un rapport clair, professionnel et structuré.
+    Fournir une analyse synthétique et des recommandations concrètes pour la remédiation."
+  expected_output: >
+    Rapport final comprenant :
+    - Introduction et contexte de la mission
+    - Collecte et analyse des resultats obtenus par chaque agent
+    - Résultats de reconnaissance réseau et de scan
+    - Vulnérabilités découvertes (avec CVE et sévérité)
+    - Résultats des tentatives d'exploitation (succès et échecs)
+    - Actions post-exploitation réalisées
+    - Synthèse des risques
+    - Recommandations stratégiques de sécurisation
+  agent: report_agent
+  output_file: results/{current_hour}_report.md
